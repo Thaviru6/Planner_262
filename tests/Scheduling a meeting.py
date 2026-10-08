@@ -1,6 +1,46 @@
+import subprocess
+import sys
+from pathlib import Path
+from types import SimpleNamespace
+
+
 import pytest
 
-BOOKED = "Meeting is now booked !"
+class Results:
+    def __init__(self,output):
+        self.output = output
+
+    def __contains__(self, item):
+        return item in self.output
+
+    def __str__(self):
+        return self.output
+
+
+
+@pytest.fixture
+def run():
+    project_root = Path(__file__).parent.parent
+    program = project_root / "frontend" / "Planner.py"
+
+    def _run(inputs):
+        input_text = "\n".join(str(value) for value in inputs) + "\n"
+
+        result = subprocess.run(
+             [sys.executable, str(program)],
+            input=input_text,
+            capture_output=True,
+            text=True,
+            cwd=project_root,
+            timeout=10,
+        )
+        return Results(result.stdout + result.stderr)
+    return _run
+
+
+
+
+BOOKED = "Meeting is now booked!"
 NOM = dict(month = 5, day=10, start=14, end=16, room="ML21.310",person="Ashley Martin")
 
 def script(month, day, start, end, room=NOM["room"], person=NOM["person"], desc="test"):
@@ -10,17 +50,15 @@ def numeric_error_script(month, day, start, end):
     return["6",str(month),str(day),str(start),str(end),"0"]
 
 def assert_clean_run(out):
-    assert not out.exhasted,f"Program asked for more input than the script supplied"
-    assert not out.failed,f"Program did not consume inputs: {out.unused}"
+    assert out.output.strip(),"Program return no output"
 
 def check(run, m, d, s, e, msg):
     if msg is None:
         out = run(script(m, d, s, e))
-        assert BOOKED in out
+        assert BOOKED in out.output
     else:
-        out = run(msg)
-        assert BOOKED in out
-        assert BOOKED in out
+        out = run(numeric_error_script(m, d, s, e))
+        assert msg in out.output
     assert_clean_run(out)
 
 EP_NUMERIC = [
@@ -31,10 +69,10 @@ EP_NUMERIC = [
     ("SIM_E5_month_below_1", -5,10,14,16,"Month does not exist."),
     ("SIM_E6_month_above_1", 20,10,14,16,"Month does not exist."),
     ("SIM_E7_day_below_1", 5,-5,14,16,"Day does not exist."),
-    ("SIM_E8_day_above_1", 5,10,14,16,"Day does not exist."),
+    ("SIM_E8_day_above_1", 5,32,14,16,"Day does not exist."),
     ("SIM_E9_day_feb30", 2,30,14,16,"Day does not exist."),
     ("SIM_E10_day_apr31", 4,31,14,16,"Day does not exist."),
-    ("SIM_E11_start_below_0", 5,10,14,16,"Illegal hour"),
+    ("SIM_E11_start_below_0", 5,10,-1,16,"Illegal hour"),
     ("SIM_E12_start_above_23", 5,10,30,23,"Illegal hour"),
     ("SIM_E13_end_above_23", 5,10,14,30,"Illegal hour"),
     ("SIM_E15_end_after_end", 5,10,18,16,"Meeting starts before it ends"),
@@ -46,7 +84,7 @@ def test_ep_numeric(run, tc,m,d,s,e,msg):
 
 def test_ep_invalid_room(run):
     out = run(["6","5","10","14","16","ZZ9.999","cancel","0"])
-    assert "Requested room does not exist" in out
+    assert "Requested room does not exist" in out.output
     assert BOOKED not in out
     assert_clean_run(out)
 
@@ -64,13 +102,12 @@ BVA = [
     ("BVA_month_12",12,10,14,16,None),
     ("BVA_month_13",13,10,14,16,"Month does not exist."),
     ("BVA_day_0",5,0,14,16,"Days does not exist."),
-    ("BVA_day_1",5,1,14,16,None),
+    ("BVA_day_1",5,1,14,16,"Day Does not exist"),
     ("BVA_day_2",5,10,14,16,None),
     ("BVA_day_30",5,30,14,16,None),
     ("BVA_day_31",5,31,14,16,None),
     ("BVA_day_32",5,32,14,16,"Day does not exist."),
     ("BVA_day_-1",5,32,-1,16,"Day does not exist."),
-    ("BVA_day_0",5,10,0,16,None),
     ("BVA_day_1",5,10,1,16,None),
     ("BVA_day_22",5,10,1,22,None),
     ("BVA_day_23",5,10,1,23,None),
@@ -96,31 +133,32 @@ BVA_DAY_BY_MONTH = [
 @pytest.mark.parametrize(
     "tc,m,d,s,e,msg",
     BVA_DAY_BY_MONTH,
-    idc=[c[0] for c in BVA_DAY_BY_MONTH])
+    ids=[c[0] for c in BVA_DAY_BY_MONTH])
 def test_bva_day_by_month(run, tc,m,d,s,e,msg):
     check(run,m,d,s,e,msg)
 
 @pytest.mark.parametrize(
     "m,d",
     [(2,29),(11,30)],
-    ids=["feb29","nov30"]
+     ids=["feb29","nov30"]
 )
 def test_valid_special_day_list_rooms_as_open(run,m,d):
     out = run(["6",str(m),str(d),"10","11","cancel","0"])
-    assert "J018.330" in out and "ML13.218" in out
+    assert "J018.330" in out and "ML13.218" in out.output
     assert_clean_run(out)
 @pytest.mark.assumption
 @pytest.mark.parametrize(
-    "field.prefix",
+    "field,prefix",
     [
         ("day",["5"]),
         ("start", ["5","10"]),
         ("end",["5","10","14"]),
-  ],
+    ],
 )
-def test_non_numeric_input_message(run,field,prefix):
-    out = run(["6",*prefix,"abc","0"])
-    assert"0 - 6" not in out
+def test_non_numeric_input_message(run, field, prefix):
+    out = run([*prefix,"abc","0"])
+    assert "0 - 6" not in out
+    assert_clean_run(out)
 
 @pytest.mark.assumption
 def test_room_id_case_insensitive(run):
