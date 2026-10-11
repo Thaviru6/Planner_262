@@ -74,6 +74,13 @@ def test_ep_invalid_month_range(run, planner, month):
     assert_clean_run(out)
     assert AGENDA_MESSAGE not in out.output
 
+@pytest.mark.parametrize("month", ["1", "2", "11", "12"])
+def test_bva_month_boundaries(run, planner, month):
+    out = run(["Mark Colin", str(month), "10"], planner)
+
+    assert_clean_run(out)
+    assert NO_MEETING in out.output
+
 def test_ep_non_integer_month(run, planner):
     out = run(["Mark Colin", "abc", "10"], planner)
 
@@ -93,20 +100,13 @@ def test_ep_day_not_in_month(run, planner):
     assert_clean_run(out)
     assert AGENDA_MESSAGE not in out.output
 
+#BVA - boundary value analysis
+
 def test_ep_invalid_day_text(run, planner):
     out = run(["Mark Colin", "5", "xyz"], planner)
 
     assert_clean_run(out)
     assert AGENDA_MESSAGE not in out.output
-
-#BVA - boundary value analysis
-
-@pytest.mark.parametrize("month", ["1", "2", "11", "12"])
-def test_bva_month_boundaries(run, planner, month):
-    out = run(["Mark Colin", str(month), "10"], planner)
-
-    assert_clean_run(out)
-    assert NO_MEETING in out.output
 
 @pytest.mark.parametrize("day", ["1", "2", "30", "31"])
 def test_bva_day_boundaries(run, planner, day):
