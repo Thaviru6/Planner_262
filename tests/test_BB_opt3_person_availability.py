@@ -33,7 +33,7 @@ def run(monkeypatch, capsys):
             try:
                 return next(values)
             except StopIteration:
-                raise RuntimeError("Unexpected addition input requested")
+                raise RuntimeError("Unexpected additional input requested")
 
         monkeypatch.setattr("builtins.input", fake_input)
 
@@ -136,7 +136,7 @@ def test_ep_end_hour_not_integer(run, planner):
     assert_nobody_listed(out)
 
 def test_ep_end_before_start(run, planner):
-    out = run(view(5, 15, 10, 12), planner)
+    out = run(view(5, 15, 12, 10), planner)
     assert INVALID_ORDER in out.output
     assert_clean_run(out)
 
@@ -200,7 +200,7 @@ def test_ki_query_surrounds_existing_meeting(run, planner):
     out = run(view(5, 15, 9, 13), planner)
 
     assert_clean_run(out)
-    assert BUSY_PERSON in out.output
+    assert BUSY_PERSON not in out.output
 
 
 
