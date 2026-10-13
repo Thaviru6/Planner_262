@@ -39,7 +39,7 @@ def test_add_meeting_conflict_is_wrapped_with_the_name(subject):
     assert "Overlap with another item - First" in text
 
 def test_add_meeting_invalid_input_is_wrapped_too(subject):
-    with pytest.raises(ConflictsException, match=r"Conflict for room R1\nDay does not exist"):
+    with pytest.raises(ConflictsException, match=r"Conflict for room R1: \nDay does not exist"):
         subject.add_meeting(mt(day=0))
 
 def test_failed_add_leaves_calendar_unchanged(subject):
@@ -49,7 +49,7 @@ def test_failed_add_leaves_calendar_unchanged(subject):
     assert len(subject.calendar.occupied[5][10]) == 1
 
 def test_print_agenda_with_day_empty(subject):
-    assert subject.print_agenda(5,10) == "No meetings booked on this date.\n\n"
+    assert subject.print_agenda(5,10) == "No Meetings booked on this date.\n\n"
 
 def test_print_agenda_with_day_list_meeting(subject):
     subject.add_meeting(mt(desc="Budget"))
@@ -57,7 +57,7 @@ def test_print_agenda_with_day_list_meeting(subject):
     assert out.startswith("Agenda for 5/10 are as follows:") and "Budget" in out
 
 def test_print_agenda_month_only_DEFECT(subject):
-    assert subject.print_agenda(5) == "No meetings booked for this month.\n\n"
+    assert subject.print_agenda(5) == "No Meetings booked for this month.\n\n"
 
 def test_print_agenda_month_only_with_meeting_DEFECT(subject):
     subject.add_meeting(mt(desc="Budget"))
@@ -71,7 +71,7 @@ def test_is_busy_true_and_false(subject):
 def test_is_busy_invalid_input_is_not_wrapped(subject):
     with pytest.raises(ConflictsException) as err:
         subject.is_busy(13,10,10,12)
-    assert  str(err.value) == "Month does not exist"
+    assert  str(err.value) == "Month does not exist."
 
 def test_get_meeting_and_bad_index(subject):
     m = mt()
