@@ -32,8 +32,8 @@ def test_get_room_middle_item(org):
 def test_get_room_last_item(org):
     assert org.get_room("ML13.218").get_id() == "ML13.218"
 
-@pytest.mark.parametrize("bad",["ZZ9.999","","ML21.330","ML21.31"],
-                         ids=["unknow","empty","space","partial"])
+@pytest.mark.parametrize("bad",["ZZ9.999","","ML21.310","ML21.31"],
+                         ids=["unknown","empty","space","partial"])
 
 def test_get_room_not_found_raises(org, bad):
     with pytest.raises(Exception, match="Requested room does not exist"):
