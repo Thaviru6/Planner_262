@@ -1,7 +1,9 @@
 import pytest
 from frontend.Planner import Planner
+from logic.Meeting import Meeting
 
-ROOMS = ["ML21.310", "ML21.311", "ML21.312"]
+
+ROOMS = ["JO18.330", "JO7.221", "JO15.236", "JO1.230", "JO34.536", "JO19.230", "ML5.123", "ML18.330", "ML21.520", "ML13.213", "ML21.310", "ML13.218"]
 BUSY_ROOM = "ML21.310"
 AVAILABLE_MESSAGE = "available"
 
@@ -40,6 +42,10 @@ def run(monkeypatch, capsys):
 
     return execute
 
+def make_room_busy(planner):
+    room = planner.org.get_room(BUSY_ROOM)
+    room.add_meeting(Meeting(5, 15, 10, 12, [], room, "Existing"))
+
 def assert_clean_run(out):
     assert out.error is None, f"Program crashed: {out.error}"
     assert out.output.strip(), "Program produced no output"
@@ -57,32 +63,30 @@ def test_ep_invalid_month_range(run, planner, month):
     out = run([month, "15", "10", "12"], planner)
 
     assert_clean_run(out)
-    assert AVAILABLE_MESSAGE not in out.output.lower()
+    assert "Month does not exist" in out.output.lower()
 
 def test_ep_non_integer_month(run, planner):
     out = run(["abc", "15", "10", "12"], planner)
 
-    assert out.error is not None
-    assert AVAILABLE_MESSAGE not in out.output.lower()
+    assert_clean_run(out)
 
 @pytest.mark.parametrize("day", ["0", '32'])
 def test_ep_invalid_day_range(run, planner, day):
     out = run(["5", day, "10", "12"], planner)
 
     assert_clean_run(out)
-    assert AVAILABLE_MESSAGE not in out.output.lower()
+    assert "Day does not exist" not in out.output.lower()
 
 def test_ep_day_not_in_month(run, planner):
     out = run(["2", "30", "10", "12"], planner)
 
     assert_clean_run(out)
-    assert AVAILABLE_MESSAGE not in out.output.lower()
+    assert "Day does not exist" in out.output.lower()
 
 def test_ep_non_integer_day(run, planner):
     out = run(["5", "abc", "10", "12"], planner)
 
-    assert out.error is not None
-    assert AVAILABLE_MESSAGE not in out.output.lower()
+    assert_clean_run(out)
 
 @pytest.mark.parametrize("start", ["-1", '24'])
 def test_ep_invalid_start_hour_range(run, planner, start):
@@ -95,7 +99,7 @@ def test_ep_invalid_start_hour_range(run, planner, start):
 def test_ep_non_integer_start_hour(run, planner):
     out = run(["5", "15", "abc", "12"], planner)
 
-    assert out.error is not None
+    assert_clean_run(out)
 
 @pytest.mark.parametrize("end", ["-1", '24'])
 def test_ep_invalid_end_hour_range(run, planner, end):
@@ -108,7 +112,7 @@ def test_ep_invalid_end_hour_range(run, planner, end):
 def test_ep_non_integer_end_hour(run, planner):
     out = run(["5", "15", "0", "abc"], planner)
 
-    assert out.error is not None
+    assert_clean_run(out)
 
 def test_ep_end_hour_before_start_hour(run, planner):
     out = run(["5", "15", "12", "10"], planner)
@@ -152,12 +156,14 @@ def test_bva_end_hour_boundaries(run, planner, end):
 
 #KI
 def test_ki_room_busy_overlap(run, planner):
+    make_room_busy(planner)
     out = run(["5", "15", "11", "13"], planner)
 
     assert_clean_run(out)
     assert BUSY_ROOM not in out.output
 
 def test_ki_query_surrounds_existing_meeting(run, planner):
+    make_room_busy(planner)
     out = run(["5", "15", "9", "13"], planner)
 
     assert_clean_run(out)

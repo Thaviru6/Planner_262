@@ -11,7 +11,7 @@ def test_all_arguments():
     cause = ValueError("root")
     e = ConflictsException("Clash",cause,True,True)
     assert str(e) == "Clash" and e.cause is cause
-    assert e.enable_suppression is False and e.writable_stack_trace is True
+    assert e.enable_suppression is True and e.writable_stack_trace is True
 
 def test_is_an_exception_and_can_be_caught():
     assert issubclass(ConflictsException,Exception)
