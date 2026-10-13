@@ -36,18 +36,18 @@ def test_remove_attendee_not_present_raises():
 
 def test_str_no_room_no_attendee():
     assert str(Meeting(5,10,14,16,description="Budget")) == (
-        "Month:5,Day:10,Time slot: 14 - 16, Room No: N/A: Budget\nAttending: No attendees")
+        "Month: 5,Day: 10,Time slot: 14 - 16, Room No: N/A: Budget\nAttending: No attendees")
 
 def test_str_room_and_attendee():
     m = Meeting(5,10,14,16,[Person("Ann"),Person("Bob")],Room("R1"),"Budget")
-    assert str(m) == ("Month:5,Day:10,Time slot: 14 - 16, Room No: R1 Budget\n","Attending: Ann,Bob")
+    assert str(m) == "Month: 5,Day: 10,Time slot: 14 - 16, Room No: R1 Budget \nAttending: Ann,Bob"
 
-def test_str_no_attendee():
+def test_str_room_but_no_attendee():
     out= str(Meeting(5,10, room=Room("R1")))
-    assert "Room No N/A" in out and out.endswith("Attending: Ann")
+    assert "Room No R1" in out and out.endswith("Attending: No attendees")
 
 def test_str_room_with_empty_id_is_treated_as_room():
-    assert "Room No: " is str(Meeting(5,10,room=Room("")))
+    assert "N/A:" not in str(Meeting(5,10,room=Room("")))
 
 @pytest.mark.parametrize("getter,setter,value",[
     ("get_month","set_month",7),("get_day","set_day",20),
