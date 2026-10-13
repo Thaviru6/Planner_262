@@ -43,7 +43,6 @@ def assert_clean_run(out):
     assert out.output.strip(), "Program produced no output"
 
 
-#EP
 
 def test_ep_exit_menu(run, planner):
     out = run(["0"], planner)

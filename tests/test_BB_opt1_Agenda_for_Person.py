@@ -1,9 +1,10 @@
 import pytest
 from frontend.Planner import Planner
+from logic.Meeting import Meeting
 
 NO_MEETING = "No Meetings booked"
 AGENDA_MESSAGE = "Agenda for"
-EMPLOYEE_ERROR = "Employee"
+EMPLOYEE_ERROR = "does not exist"
 
 class RunResult:
     def __init__(self, output, error=None):
@@ -40,6 +41,11 @@ def run(monkeypatch, capsys):
 
     return execute
 
+def book_team_sync(planner):
+    person = planner.org.get_employee("Mark Colin")
+    person.add_meeting(Meeting(5, 10, 9, 11, [person], None, "Team sync"))
+
+
 def assert_clean_run(out):
     assert out.error is None, f"Program crashed: {out.error}"
     assert out.output.strip(), "Program produced no output"
@@ -47,6 +53,7 @@ def assert_clean_run(out):
 #EP
 
 def test_ep_valid_person_agenda(run, planner):
+    book_team_sync(planner)
     out = run(["Mark Colin", "5", "10"], planner)
 
     assert_clean_run(out)
@@ -54,6 +61,7 @@ def test_ep_valid_person_agenda(run, planner):
     assert "Team sync" in out.output
 
 def test_ep_valid_day_all(run, planner):
+    book_team_sync(planner)
     out = run(["Mark Colin", "5", "all"], planner)
 
     assert_clean_run(out)
@@ -64,7 +72,7 @@ def test_ep_person_not_found(run, planner):
     out = run(["Nobody", "5", "10"], planner)
 
     assert_clean_run(out)
-    assert "Nobody" in out.output
+    assert "does not exist" in out.output
     assert AGENDA_MESSAGE not in out.output
 
 @pytest.mark.parametrize("month", ["0", "13"])
@@ -72,7 +80,7 @@ def test_ep_invalid_month_range(run, planner, month):
     out = run(["Mark Colin", month, "10"], planner)
 
     assert_clean_run(out)
-    assert AGENDA_MESSAGE not in out.output
+    assert "does not exist" in out.output
 
 @pytest.mark.parametrize("month", ["1", "2", "11", "12"])
 def test_bva_month_boundaries(run, planner, month):
@@ -84,7 +92,7 @@ def test_bva_month_boundaries(run, planner, month):
 def test_ep_non_integer_month(run, planner):
     out = run(["Mark Colin", "abc", "10"], planner)
 
-    assert out.error is not None
+    assert_clean_run(out)
     assert AGENDA_MESSAGE not in out.output
 
 @pytest.mark.parametrize("day", ["0", "32"])
@@ -92,15 +100,13 @@ def test_ep_invalid_day_range(run, planner, day):
     out = run(["Mark Colin", "5", day], planner)
 
     assert_clean_run(out)
-    assert AGENDA_MESSAGE not in out.output
+    assert "does not exist" in out.output
 
 def test_ep_day_not_in_month(run, planner):
     out = run(["Mark Colin", "2", "30"], planner)
 
     assert_clean_run(out)
     assert AGENDA_MESSAGE not in out.output
-
-#BVA - boundary value analysis
 
 def test_ep_invalid_day_text(run, planner):
     out = run(["Mark Colin", "5", "xyz"], planner)
@@ -115,22 +121,26 @@ def test_bva_day_boundaries(run, planner, day):
     assert_clean_run(out)
     assert NO_MEETING in out.output
 
-#KI
+
 def test_ki_person_name_lowercase(run, planner):
+    book_team_sync(planner)
     out = run(["mark colin", "5", "10"], planner)
 
     assert_clean_run(out)
-    assert AGENDA_MESSAGE in out.output or EMPLOYEE_ERROR in out.output
+    assert EMPLOYEE_ERROR not in out.output
+    assert AGENDA_MESSAGE in out.output
 
 def test_ki_day_all_uppercase(run, planner):
+    book_team_sync(planner)
     out = run(["Mark Colin", "5", "ALL"], planner)
 
     assert_clean_run(out)
-    assert AGENDA_MESSAGE in out.output or NO_MEETING in out.output
+    assert AGENDA_MESSAGE in out.output
 
 def test_ki_all_for_month_without_meetings(run, planner):
     out = run(["Mark Colin", "6", "all"], planner)
 
     assert_clean_run(out)
     assert NO_MEETING in out.output
+
 

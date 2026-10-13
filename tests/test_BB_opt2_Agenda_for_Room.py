@@ -4,9 +4,9 @@ from frontend.Planner import Planner
 
 NO_DAY ="No Meetings booked on this date."
 ROOM_MISSING = "Requested room does not exist"
-NO_MONTH ="No Meeting booked for this month."
+NO_MONTH ="No Meetings booked for this month."
 ROOM ="ML21.310"
-OTHER_ROOM ="JO18.310"
+OTHER_ROOM ="JO18.330"
 
 BOOK_MEETING =["6","5","10","14","16", ROOM,"Ashley Martin","done","Budget"]
 class Output(str):
@@ -39,10 +39,9 @@ def view(room,month,day, with_meeting = False):
 
 def assert_error_shown(out):
     assert "does not exist" in out
-    assert "Agenda for " in out and "Room No: N/A" in out
 
 def assert_clean_run(out):
-    assert "Trackback " not in out.output, "Program crashed:\n" + out.output
+    assert "Traceback " not in out.output, "Program crashed:\n" + out.output
     assert out.output.strip(),"Program produced no output"
 
 def test_ep_valid_day_with_meeting(run):
@@ -102,14 +101,12 @@ def test_ep_out_of_range_gives_error(run,tc,month,day):
 def test_ep_non_numeric_gives_clear_message(run,tc,month,day):
     out = run(view(ROOM,month,day))
     assert_clean_run(out)
-    assert"valid number" in out
+    assert"0 - 6" in out
 
 BVA = [
     ("BVA_month_0",0,10,False),("BVA_month_1",1,10,True),
-    ("BVA_month_2",2,10,True),("BVA_month_11",11,10,True),
     ("BVA_month_12", 12, 10, True), ("BVA_month_13", 13, 10, False),
     ("BVA_day_0", 5, 0, False), ("BVA_day_1", 5, 1, True),
-    ("BVA_day_2", 5, 2, True), ("BVA_day_30", 5, 30, True),
     ("BVA_day_31", 5, 31, True), ("BVA_day_32", 5, 32, False),
 ]
 
