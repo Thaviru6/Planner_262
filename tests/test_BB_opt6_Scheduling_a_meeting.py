@@ -62,10 +62,10 @@ def check(run, m, d, s, e, msg):
     assert_clean_run(out)
 
 EP_NUMERIC = [
-    ("SIM_E1_all_valid_nominal", 5,10,14,16,None), #Valid entry
-    ("SIM_E2_valid_feb29", 2,29,14,16,None), #leap day
-    ("SIM_E3_valid_nov30", 11,30,14,16, None), #Day 30 in a 30 day month
-    ("SIM_E4_valid_may31", 5,31,14,16,None), #Day 31 in 31 day in a month
+    ("SIM_E1_all_valid_nominal", 5,10,14,16,None),
+    ("SIM_E2_valid_feb29", 2,29,14,16,None),
+    ("SIM_E3_valid_nov30", 11,30,14,16, None),
+    ("SIM_E4_valid_may31", 5,31,14,16,None),
     ("SIM_E5_month_below_1", -5,10,14,16,"Month does not exist."),
     ("SIM_E6_month_above_1", 20,10,14,16,"Month does not exist."),
     ("SIM_E7_day_below_1", 5,-5,14,16,"Day does not exist."),

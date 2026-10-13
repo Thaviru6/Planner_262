@@ -203,4 +203,3 @@ def test_ki_conflicting_vacation_booking(run, planner):
     assert "conflict" in second.output.lower()
 
 
-
