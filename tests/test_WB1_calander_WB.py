@@ -202,7 +202,7 @@ def test_print_agenda_valid_empty_day_DEFECT(cal,month,day):
     assert cal.print_agenda(month,day) == "No Meetings booked on this date.\n\n"
 
 def test_print_agenda_month_only_DEFECT(cal):
-    assert cal.print_agenda(5) == "No Meetings booked on this month.\n\n"
+    assert cal.print_agenda(5) == "No Meetings booked for this month.\n\n"
 
 
 
